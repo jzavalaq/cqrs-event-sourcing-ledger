@@ -1,0 +1,39 @@
+# Development Profile - H2 In-Memory Database
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:ledgerdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  flyway:
+    enabled: false
+
+# JWT Configuration (dev defaults)
+jwt:
+  secret: ${JWT_SECRET:dev-secret-key-change-in-production-min-256-bits}
+  expiration: 86400000
+
+# CORS for development
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080}
+
+# Logging
+logging:
+  level:
+    com.ledger: DEBUG
+    org.springframework.security: DEBUG
