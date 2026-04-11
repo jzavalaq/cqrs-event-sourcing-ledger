@@ -12,6 +12,7 @@ import com.ledger.repository.AccountProjectionRepository;
 import com.ledger.repository.AccountRepository;
 import com.ledger.repository.EventStoreRepository;
 import com.ledger.repository.LedgerEntryRepository;
+import com.ledger.util.ApplicationConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,15 +27,19 @@ import java.util.stream.Collectors;
 
 /**
  * Query service for account operations (CQRS Read Side).
- * Uses projections for optimized reads.
+ * <p>
+ * Uses projections for optimized reads. All methods are read-only
+ * and do not modify state.
+ * </p>
+ *
+ * @see AccountCommandService
+ * @see AccountProjection
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
 public class AccountQueryService {
-
-    private static final int MAX_PAGE_SIZE = 100;
 
     private final AccountRepository accountRepository;
     private final AccountProjectionRepository projectionRepository;
@@ -72,7 +77,7 @@ public class AccountQueryService {
     }
 
     public Page<AccountResponse> getAllAccountsPaged(int page, int size) {
-        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        int safeSize = Math.min(Math.max(size, 1), ApplicationConstants.MAX_PAGE_SIZE);
         int safePage = Math.max(page, 0);
         Pageable pageable = PageRequest.of(safePage, safeSize);
         return projectionRepository.findAll(pageable)
@@ -92,7 +97,7 @@ public class AccountQueryService {
         if (!projectionRepository.existsById(accountId)) {
             throw ResourceNotFoundException.accountNotFound(accountId);
         }
-        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        int safeSize = Math.min(Math.max(size, 1), ApplicationConstants.MAX_PAGE_SIZE);
         int safePage = Math.max(page, 0);
         Pageable pageable = PageRequest.of(safePage, safeSize);
         return ledgerEntryRepository.findByAccountIdOrderByCreatedAtDesc(accountId, pageable)
@@ -106,7 +111,7 @@ public class AccountQueryService {
     }
 
     public Page<EventResponse> getAllEvents(int page, int size) {
-        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        int safeSize = Math.min(Math.max(size, 1), ApplicationConstants.MAX_PAGE_SIZE);
         int safePage = Math.max(page, 0);
         Pageable pageable = PageRequest.of(safePage, safeSize);
         return eventStoreRepository.findAllByOrderByOccurredAtDesc(pageable)
@@ -152,6 +157,7 @@ public class AccountQueryService {
             .description(entry.getDescription())
             .relatedAccountId(entry.getRelatedAccountId())
             .createdAt(entry.getCreatedAt())
+            .version(entry.getVersion())
             .build();
     }
 
@@ -164,6 +170,7 @@ public class AccountQueryService {
             .eventType(event.getEventType())
             .eventData(event.getEventData())
             .occurredAt(event.getOccurredAt())
+            .version(event.getVersion())
             .build();
     }
 }

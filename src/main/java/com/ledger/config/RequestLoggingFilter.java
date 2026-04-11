@@ -1,5 +1,6 @@
 package com.ledger.config;
 
+import com.ledger.util.ApplicationConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,17 +20,14 @@ import java.util.UUID;
 @Slf4j
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
-    private static final String CORRELATION_ID_HEADER = "X-Correlation-Id";
-    private static final String CORRELATION_ID_KEY = "correlationId";
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         long startTime = System.currentTimeMillis();
         String correlationId = getOrCreateCorrelationId(request);
 
-        MDC.put(CORRELATION_ID_KEY, correlationId);
-        response.setHeader(CORRELATION_ID_HEADER, correlationId);
+        MDC.put(ApplicationConstants.CORRELATION_ID_KEY, correlationId);
+        response.setHeader(ApplicationConstants.CORRELATION_ID_HEADER, correlationId);
 
         try {
             logRequest(request, correlationId);
@@ -37,12 +35,12 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         } finally {
             long duration = System.currentTimeMillis() - startTime;
             logResponse(response, duration, correlationId);
-            MDC.remove(CORRELATION_ID_KEY);
+            MDC.remove(ApplicationConstants.CORRELATION_ID_KEY);
         }
     }
 
     private String getOrCreateCorrelationId(HttpServletRequest request) {
-        String correlationId = request.getHeader(CORRELATION_ID_HEADER);
+        String correlationId = request.getHeader(ApplicationConstants.CORRELATION_ID_HEADER);
         if (correlationId == null || correlationId.isBlank()) {
             correlationId = UUID.randomUUID().toString();
         }

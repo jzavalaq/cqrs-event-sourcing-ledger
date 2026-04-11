@@ -15,7 +15,10 @@ import java.util.UUID;
  * This is the write-side model in CQRS.
  */
 @Entity
-@Table(name = "accounts")
+@Table(name = "accounts", indexes = {
+    @Index(name = "idx_accounts_number", columnList = "account_number"),
+    @Index(name = "idx_accounts_status", columnList = "status")
+})
 @Data
 @Builder
 @NoArgsConstructor

@@ -26,6 +26,14 @@ import java.util.UUID;
 
 /**
  * Command service for account operations (CQRS Write Side).
+ * <p>
+ * Handles all state-modifying operations: opening accounts, credits, debits,
+ * transfers, and account closure. Each operation is transactional and emits
+ * domain events to the event store.
+ * </p>
+ *
+ * @see AccountQueryService
+ * @see com.ledger.event.DomainEvent
  */
 @Service
 @RequiredArgsConstructor
@@ -38,6 +46,17 @@ public class AccountCommandService {
     private final EventStoreRepository eventStoreRepository;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Opens a new bank account.
+     * <p>
+     * Creates the account entity, emits an AccountOpenedEvent, updates the projection,
+     * and if an initial balance is provided, creates a corresponding ledger entry.
+     * </p>
+     *
+     * @param request the account opening request
+     * @return the created account
+     * @throws InvalidOperationException if account number already exists
+     */
     @Transactional
     public Account openAccount(OpenAccountRequest request) {
         if (accountRepository.existsByAccountNumber(request.getAccountNumber())) {
@@ -92,6 +111,15 @@ public class AccountCommandService {
         return saved;
     }
 
+    /**
+     * Credits (deposits) funds to an account.
+     *
+     * @param accountId the account to credit
+     * @param request the credit request containing amount and description
+     * @return the updated account
+     * @throws ResourceNotFoundException if account not found
+     * @throws InvalidOperationException if account is not active
+     */
     @Transactional
     public Account creditAccount(UUID accountId, CreditDebitRequest request) {
         Account account = findAccountById(accountId);
@@ -126,6 +154,16 @@ public class AccountCommandService {
         return saved;
     }
 
+    /**
+     * Debits (withdraws) funds from an account.
+     *
+     * @param accountId the account to debit
+     * @param request the debit request containing amount and description
+     * @return the updated account
+     * @throws ResourceNotFoundException if account not found
+     * @throws InvalidOperationException if account is not active
+     * @throws InsufficientFundsException if account has insufficient balance
+     */
     @Transactional
     public Account debitAccount(UUID accountId, CreditDebitRequest request) {
         Account account = findAccountById(accountId);
@@ -164,6 +202,18 @@ public class AccountCommandService {
         return saved;
     }
 
+    /**
+     * Transfers money between two accounts atomically.
+     * <p>
+     * This operation debits the source account and credits the destination account
+     * within a single transaction. Both accounts must exist and be active.
+     * </p>
+     *
+     * @param request the transfer request containing source, destination, and amount
+     * @throws ResourceNotFoundException if either account not found
+     * @throws InvalidOperationException if accounts are not active or same account
+     * @throws InsufficientFundsException if source account has insufficient balance
+     */
     @Transactional
     public void transferMoney(TransferRequest request) {
         if (request.getFromAccountId().equals(request.getToAccountId())) {
@@ -235,6 +285,17 @@ public class AccountCommandService {
             request.getFromAccountId(), request.getToAccountId(), request.getAmount());
     }
 
+    /**
+     * Closes an account.
+     * <p>
+     * An account can only be closed if it has a zero balance.
+     * </p>
+     *
+     * @param accountId the account to close
+     * @param reason the reason for closure
+     * @throws ResourceNotFoundException if account not found
+     * @throws InvalidOperationException if account has non-zero balance
+     */
     @Transactional
     public void closeAccount(UUID accountId, String reason) {
         Account account = findAccountById(accountId);

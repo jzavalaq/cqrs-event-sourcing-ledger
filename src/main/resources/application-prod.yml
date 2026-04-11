@@ -3,8 +3,8 @@
 spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/ledgerdb}
-    username: ${DB_USERNAME:ledger}
-    password: ${DB_PASSWORD:ledger123}
+    username: ${DB_USERNAME:}
+    password: ${DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 30000
@@ -23,14 +23,18 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+  h2:
+    console:
+      enabled: ${H2_CONSOLE_ENABLED:false}
+
 # JWT Configuration (must be set via environment)
 jwt:
-  secret: ${JWT_SECRET:change-me-in-production}
+  secret: ${JWT_SECRET:}
   expiration: 86400000
 
 # CORS for production
 cors:
-  allowed-origins: ${ALLOWED_ORIGINS:https://ledger.example.com}
+  allowed-origins: ${ALLOWED_ORIGINS:}
 
 # Logging
 logging:

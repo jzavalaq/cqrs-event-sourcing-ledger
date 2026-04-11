@@ -15,7 +15,9 @@ import java.util.UUID;
  * Optimized for queries.
  */
 @Entity
-@Table(name = "account_projections")
+@Table(name = "account_projections", indexes = {
+    @Index(name = "idx_projections_number", columnList = "account_number")
+})
 @Data
 @Builder
 @NoArgsConstructor

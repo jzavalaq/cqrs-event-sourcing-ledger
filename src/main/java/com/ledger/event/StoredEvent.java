@@ -14,7 +14,11 @@ import java.util.UUID;
  * All domain events are stored as immutable records in the event store.
  */
 @Entity
-@Table(name = "stored_events")
+@Table(name = "stored_events", indexes = {
+    @Index(name = "idx_events_aggregate_id", columnList = "aggregate_id"),
+    @Index(name = "idx_events_occurred_at", columnList = "occurred_at"),
+    @Index(name = "idx_events_type", columnList = "event_type")
+})
 @Data
 @Builder
 @NoArgsConstructor

@@ -1,0 +1,40 @@
+# Test Profile - H2 In-Memory Database
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: false
+    show-sql: false
+
+  h2:
+    console:
+      enabled: false
+
+  flyway:
+    enabled: false
+
+  autoconfigure:
+    security:
+      enabled: false
+
+# JWT Configuration (test defaults)
+jwt:
+  secret: test-secret-key-for-testing-minimum-256-bits-required
+  expiration: 86400000
+
+# Logging
+logging:
+  level:
+    com.ledger: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN

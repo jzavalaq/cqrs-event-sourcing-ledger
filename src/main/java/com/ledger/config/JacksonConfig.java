@@ -8,9 +8,29 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+/**
+ * Jackson JSON configuration.
+ * <p>
+ * Configures the ObjectMapper for proper handling of Java 8+ time types
+ * and lenient deserialization.
+ * </p>
+ */
 @Configuration
 public class JacksonConfig {
 
+    /**
+     * Creates the primary ObjectMapper bean.
+     * <p>
+     * Configuration:
+     * <ul>
+     *   <li>JavaTimeModule for Instant, LocalDateTime, etc.</li>
+     *   <li>Dates serialized as ISO-8601 strings, not timestamps</li>
+     *   <li>Unknown properties ignored during deserialization</li>
+     * </ul>
+     * </p>
+     *
+     * @return configured ObjectMapper
+     */
     @Bean
     @Primary
     public ObjectMapper objectMapper() {
